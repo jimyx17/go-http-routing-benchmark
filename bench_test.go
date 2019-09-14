@@ -138,6 +138,13 @@ func BenchmarkGin_Param(b *testing.B) {
 	r, _ := http.NewRequest("GET", "/user/gordon", nil)
 	benchRequest(b, router, r)
 }
+
+func BenchmarkIris_Param(b *testing.B) {
+	router := loadIrisSingle("GET", "/user/:name", irisHandle)
+
+	r, _ := http.NewRequest("GET", "/user/gordon", nil)
+	benchRequest(b, router, r)
+}
 func BenchmarkGocraftWeb_Param(b *testing.B) {
 	router := loadGocraftWebSingle("GET", "/user/:name", gocraftWebHandler)
 
@@ -234,12 +241,6 @@ func BenchmarkR2router_Param(b *testing.B) {
 	benchRequest(b, router, r)
 }
 
-func BenchmarkRevel_Param(b *testing.B) {
-	router := loadRevelSingle("GET", "/user/:name", "RevelController.Handle")
-
-	r, _ := http.NewRequest("GET", "/user/gordon", nil)
-	benchRequest(b, router, r)
-}
 func BenchmarkRivet_Param(b *testing.B) {
 	router := loadRivetSingle("GET", "/user/:name", rivetHandler)
 
@@ -321,6 +322,12 @@ func BenchmarkEcho_Param5(b *testing.B) {
 }
 func BenchmarkGin_Param5(b *testing.B) {
 	router := loadGinSingle("GET", fiveColon, ginHandle)
+
+	r, _ := http.NewRequest("GET", fiveRoute, nil)
+	benchRequest(b, router, r)
+}
+func BenchmarkIris_Param5(b *testing.B) {
+	router := loadIrisSingle("GET", fiveColon, irisHandle)
 
 	r, _ := http.NewRequest("GET", fiveRoute, nil)
 	benchRequest(b, router, r)
@@ -420,12 +427,6 @@ func BenchmarkR2router_Param5(b *testing.B) {
 	benchRequest(b, router, r)
 }
 
-func BenchmarkRevel_Param5(b *testing.B) {
-	router := loadRevelSingle("GET", fiveColon, "RevelController.Handle")
-
-	r, _ := http.NewRequest("GET", fiveRoute, nil)
-	benchRequest(b, router, r)
-}
 func BenchmarkRivet_Param5(b *testing.B) {
 	router := loadRivetSingle("GET", fiveColon, rivetHandler)
 
@@ -507,6 +508,12 @@ func BenchmarkEcho_Param20(b *testing.B) {
 }
 func BenchmarkGin_Param20(b *testing.B) {
 	router := loadGinSingle("GET", twentyColon, ginHandle)
+
+	r, _ := http.NewRequest("GET", twentyRoute, nil)
+	benchRequest(b, router, r)
+}
+func BenchmarkIris_Param20(b *testing.B) {
+	router := loadIrisSingle("GET", twentyColon, irisHandle)
 
 	r, _ := http.NewRequest("GET", twentyRoute, nil)
 	benchRequest(b, router, r)
@@ -605,13 +612,6 @@ func BenchmarkR2router_Param20(b *testing.B) {
 	r, _ := http.NewRequest("GET", twentyRoute, nil)
 	benchRequest(b, router, r)
 }
-
-func BenchmarkRevel_Param20(b *testing.B) {
-	router := loadRevelSingle("GET", twentyColon, "RevelController.Handle")
-
-	r, _ := http.NewRequest("GET", twentyRoute, nil)
-	benchRequest(b, router, r)
-}
 func BenchmarkRivet_Param20(b *testing.B) {
 	router := loadRivetSingle("GET", twentyColon, rivetHandler)
 
@@ -689,6 +689,12 @@ func BenchmarkEcho_ParamWrite(b *testing.B) {
 }
 func BenchmarkGin_ParamWrite(b *testing.B) {
 	router := loadGinSingle("GET", "/user/:name", ginHandleWrite)
+
+	r, _ := http.NewRequest("GET", "/user/gordon", nil)
+	benchRequest(b, router, r)
+}
+func BenchmarkIris_ParamWrite(b *testing.B) {
+	router := loadIrisSingle("GET", "/user/:name", irisHandleWrite)
 
 	r, _ := http.NewRequest("GET", "/user/gordon", nil)
 	benchRequest(b, router, r)
@@ -788,12 +794,6 @@ func BenchmarkR2router_ParamWrite(b *testing.B) {
 	benchRequest(b, router, r)
 }
 
-func BenchmarkRevel_ParamWrite(b *testing.B) {
-	router := loadRevelSingle("GET", "/user/:name", "RevelController.HandleWrite")
-
-	r, _ := http.NewRequest("GET", "/user/gordon", nil)
-	benchRequest(b, router, r)
-}
 func BenchmarkRivet_ParamWrite(b *testing.B) {
 	router := loadRivetSingle("GET", "/user/:name", rivetHandlerWrite)
 

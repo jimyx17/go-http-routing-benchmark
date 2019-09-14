@@ -22,6 +22,9 @@ import (
 	"github.com/astaxie/beego/context"
 	"github.com/bmizerany/pat"
 	"github.com/go-playground/lars"
+	"github.com/kataras/iris"
+	ictx "github.com/kataras/iris/context"
+
 	// "github.com/daryl/zeus"
 	"github.com/dimfeld/httptreemux"
 	"github.com/emicklei/go-restful"
@@ -40,13 +43,11 @@ import (
 	possumrouter "github.com/mikespook/possum/router"
 	possumview "github.com/mikespook/possum/view"
 	"github.com/naoina/denco"
-	"github.com/naoina/kocha-urlrouter"
+	urlrouter "github.com/naoina/kocha-urlrouter"
 	_ "github.com/naoina/kocha-urlrouter/doublearray"
 	"github.com/pilu/traffic"
 	"github.com/plimble/ace"
 	"github.com/rcrowley/go-tigertonic"
-	"github.com/revel/revel"
-	"github.com/robfig/pathtree"
 	"github.com/typepress/rivet"
 	"github.com/ursiform/bear"
 	"github.com/vanng822/r2router"
@@ -93,7 +94,6 @@ func init() {
 	initBeego()
 	initGin()
 	initMartini()
-	initRevel()
 	initTango()
 	initTraffic()
 }
@@ -345,7 +345,7 @@ func echoHandlerTest(c echo.Context) error {
 
 func loadEcho(routes []route) http.Handler {
 	var h echo.HandlerFunc = echoHandler
-	if loadTestHandler { 
+	if loadTestHandler {
 		h = echoHandlerTest
 	}
 
@@ -419,6 +419,51 @@ func loadGin(routes []route) http.Handler {
 func loadGinSingle(method, path string, handle gin.HandlerFunc) http.Handler {
 	router := gin.New()
 	router.Handle(method, path, handle)
+	return router
+}
+
+// Iris
+func irisHandle(_ ictx.Context) {
+	log.Printf("TEST\n")
+}
+
+func irisHandleWrite(ic ictx.Context) {
+	io.WriteString(ic.Recorder(), ic.Params().Get("name"))
+}
+
+func irisHandleTest(ic ictx.Context) {
+	io.WriteString(ic.Recorder(), ic.Request().RequestURI)
+}
+
+func initIris() {
+}
+
+func loadIris(routes []route) http.Handler {
+	h := irisHandle
+	if loadTestHandler {
+		h = irisHandleTest
+	}
+
+	router := iris.New()
+	cfgIris := iris.DefaultConfiguration()
+	cfgIris.DisablePathCorrectionRedirection = true
+	router.Logger().SetLevel("disable")
+
+	router.Configure(iris.WithConfiguration(cfgIris))
+	for _, route := range routes {
+		router.Handle(route.method, route.path, h)
+	}
+
+	router.Build()
+
+	return router.Router
+}
+
+func loadIrisSingle(method, path string, handle iris.Handler) http.Handler {
+	router := iris.Default()
+
+	router.Handle(method, path, handle)
+	router.Build()
 	return router
 }
 
@@ -1128,127 +1173,6 @@ func loadR2routerSingle(method, path string, handler r2router.HandlerFunc) http.
 	router := r2router.NewRouter()
 	router.AddHandler(method, path, handler)
 	return router
-}
-
-// Revel (Router only)
-// In the following code some Revel internals are modelled.
-// The original revel code is copyrighted by Rob Figueiredo.
-// See https://github.com/revel/revel/blob/master/LICENSE
-type RevelController struct {
-	*revel.Controller
-	router *revel.Router
-}
-
-func (rc *RevelController) Handle() revel.Result {
-	return revelResult{}
-}
-
-func (rc *RevelController) HandleWrite() revel.Result {
-	return rc.RenderText(rc.Params.Get("name"))
-}
-
-func (rc *RevelController) HandleTest() revel.Result {
-	return rc.RenderText(rc.Request.RequestURI)
-}
-
-type revelResult struct{}
-
-func (rr revelResult) Apply(req *revel.Request, resp *revel.Response) {}
-
-func (rc *RevelController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Dirty hacks, do NOT copy!
-	revel.MainRouter = rc.router
-
-	upgrade := r.Header.Get("Upgrade")
-	if upgrade == "websocket" || upgrade == "Websocket" {
-		panic("Not implemented")
-	} else {
-		var (
-			req  = revel.NewRequest(r)
-			resp = revel.NewResponse(w)
-			c    = revel.NewController(req, resp)
-		)
-		req.Websocket = nil
-		revel.Filters[0](c, revel.Filters[1:])
-		if c.Result != nil {
-			c.Result.Apply(req, resp)
-		} else if c.Response.Status != 0 {
-			panic("Not implemented")
-		}
-		// Close the Writer if we can
-		if w, ok := resp.Out.(io.Closer); ok {
-			w.Close()
-		}
-	}
-}
-
-func initRevel() {
-	// Only use the Revel filters required for this benchmark
-	revel.Filters = []revel.Filter{
-		revel.RouterFilter,
-		revel.ParamsFilter,
-		revel.ActionInvoker,
-	}
-
-	revel.RegisterController((*RevelController)(nil),
-		[]*revel.MethodType{
-			{
-				Name: "Handle",
-			},
-			{
-				Name: "HandleWrite",
-			},
-			{
-				Name: "HandleTest",
-			},
-		})
-}
-
-func loadRevel(routes []route) http.Handler {
-	h := "RevelController.Handle"
-	if loadTestHandler {
-		h = "RevelController.HandleTest"
-	}
-
-	router := revel.NewRouter("")
-
-	// parseRoutes
-	var rs []*revel.Route
-	for _, r := range routes {
-		rs = append(rs, revel.NewRoute(r.method, r.path, h, "", "", 0))
-	}
-	router.Routes = rs
-
-	// updateTree
-	router.Tree = pathtree.New()
-	for _, r := range router.Routes {
-		err := router.Tree.Add(r.TreePath, r)
-		// Allow GETs to respond to HEAD requests.
-		if err == nil && r.Method == "GET" {
-			err = router.Tree.Add("/HEAD"+r.Path, r)
-		}
-		// Error adding a route to the pathtree.
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	rc := new(RevelController)
-	rc.router = router
-	return rc
-}
-
-func loadRevelSingle(method, path, action string) http.Handler {
-	router := revel.NewRouter("")
-
-	route := revel.NewRoute(method, path, action, "", "", 0)
-	if err := router.Tree.Add(route.TreePath, route); err != nil {
-		panic(err)
-	}
-
-	rc := new(RevelController)
-	rc.router = router
-	return rc
 }
 
 // Rivet

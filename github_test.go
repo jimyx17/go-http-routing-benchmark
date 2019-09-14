@@ -281,6 +281,7 @@ var (
 	githubDenco       http.Handler
 	githubEcho        http.Handler
 	githubGin         http.Handler
+	githubIris        http.Handler
 	githubGocraftWeb  http.Handler
 	githubGoji        http.Handler
 	githubGojiv2      http.Handler
@@ -296,7 +297,6 @@ var (
 	githubPat         http.Handler
 	githubPossum      http.Handler
 	githubR2router    http.Handler
-	githubRevel       http.Handler
 	githubRivet       http.Handler
 	githubTango       http.Handler
 	githubTigerTonic  http.Handler
@@ -328,6 +328,9 @@ func init() {
 	})
 	calcMem("Gin", func() {
 		githubGin = loadGin(githubAPI)
+	})
+	calcMem("Iris", func() {
+		githubIris = loadIris(githubAPI)
 	})
 	calcMem("GocraftWeb", func() {
 		githubGocraftWeb = loadGocraftWeb(githubAPI)
@@ -373,9 +376,6 @@ func init() {
 	})
 	calcMem("R2router", func() {
 		githubR2router = loadR2router(githubAPI)
-	})
-	calcMem("Revel", func() {
-		githubRevel = loadRevel(githubAPI)
 	})
 	calcMem("Rivet", func() {
 		githubRivet = loadRivet(githubAPI)
@@ -427,6 +427,10 @@ func BenchmarkEcho_GithubStatic(b *testing.B) {
 func BenchmarkGin_GithubStatic(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/user/repos", nil)
 	benchRequest(b, githubGin, req)
+}
+func BenchmarkIris_GithubStatic(b *testing.B) {
+	req, _ := http.NewRequest("GET", "/user/repos", nil)
+	benchRequest(b, githubIris, req)
 }
 func BenchmarkGocraftWeb_GithubStatic(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/user/repos", nil)
@@ -488,10 +492,6 @@ func BenchmarkR2router_GithubStatic(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/user/repos", nil)
 	benchRequest(b, githubR2router, req)
 }
-func BenchmarkRevel_GithubStatic(b *testing.B) {
-	req, _ := http.NewRequest("GET", "/user/repos", nil)
-	benchRequest(b, githubRevel, req)
-}
 func BenchmarkRivet_GithubStatic(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/user/repos", nil)
 	benchRequest(b, githubRivet, req)
@@ -546,6 +546,10 @@ func BenchmarkEcho_GithubParam(b *testing.B) {
 func BenchmarkGin_GithubParam(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
 	benchRequest(b, githubGin, req)
+}
+func BenchmarkIris_GithubParam(b *testing.B) {
+	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
+	benchRequest(b, githubIris, req)
 }
 func BenchmarkGocraftWeb_GithubParam(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
@@ -607,10 +611,6 @@ func BenchmarkR2router_GithubParam(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
 	benchRequest(b, githubR2router, req)
 }
-func BenchmarkRevel_GithubParam(b *testing.B) {
-	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
-	benchRequest(b, githubRevel, req)
-}
 func BenchmarkRivet_GithubParam(b *testing.B) {
 	req, _ := http.NewRequest("GET", "/repos/julienschmidt/httprouter/stargazers", nil)
 	benchRequest(b, githubRivet, req)
@@ -659,6 +659,9 @@ func BenchmarkEcho_GithubAll(b *testing.B) {
 func BenchmarkGin_GithubAll(b *testing.B) {
 	benchRoutes(b, githubGin, githubAPI)
 }
+func BenchmarkIris_GithubAll(b *testing.B) {
+	benchRoutes(b, githubIris, githubAPI)
+}
 func BenchmarkGocraftWeb_GithubAll(b *testing.B) {
 	benchRoutes(b, githubGocraftWeb, githubAPI)
 }
@@ -703,9 +706,6 @@ func BenchmarkPossum_GithubAll(b *testing.B) {
 }
 func BenchmarkR2router_GithubAll(b *testing.B) {
 	benchRoutes(b, githubR2router, githubAPI)
-}
-func BenchmarkRevel_GithubAll(b *testing.B) {
-	benchRoutes(b, githubRevel, githubAPI)
 }
 func BenchmarkRivet_GithubAll(b *testing.B) {
 	benchRoutes(b, githubRivet, githubAPI)
